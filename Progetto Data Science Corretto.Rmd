@@ -1,0 +1,311 @@
+---
+title: "Progetto New"
+author: "Elisa Della Longa"
+date: "2022-09-08"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+Progetto per Data Science riguardante le micoplastiche presenti sul nostro pianeta
+
+La prima cosa da fare è caricare i pacchetti necessari:
+
+```{r}
+library(ggplot2)
+library(dplyr)
+library(maps)
+```
+
+Partiamo analizzando la prima tabella che mostra il numero dei pezzetti di plastica rilevati in diverse posizioni durante diversi anni. Prendiamo la tabella e creiamo un dataframe:
+
+```{r}
+Data_ADVENTURE_SCIENTIST <- read.csv("C:/Users/della/OneDrive/Desktop/Uni/MICROPLASTIC_DATA_BASED_ON_LAT_LONG/ADVENTURE_MICRO_FROM_SCIENTIST.csv")
+
+ADVENTURE_SCIENTIST <- data.frame(Data_ADVENTURE_SCIENTIST)
+```
+
+Creo una mappa del mondo per poter visualizzare al meglio i dati:
+
+```{r}
+map(database = "world")
+
+points(x = ADVENTURE_SCIENTIST$Longitude, y = ADVENTURE_SCIENTIST$Latitude, col = "Black", pch = 18)
+```
+
+
+Escludiamo i valori molto vecchi per poter analizzare quelli più recenti e attualmente incomprensibili:
+
+```{r}
+Recent_ADVENTURE_SCIENTIST <- filter(ADVENTURE_SCIENTIST, Date >= "2013-07-01")
+
+Recent_ADVENTURE_SCIENTIST_dt <- data.frame(Recent_ADVENTURE_SCIENTIST)
+
+map(database = "world")
+
+points(x = Recent_ADVENTURE_SCIENTIST_dt$Longitude, y = Recent_ADVENTURE_SCIENTIST_dt$Latitude, col = "Black", pch = 18)
+```
+
+Notiamo che la latitudine principalmente è compresa tra 0 e 45 circa quindi filtriamo i dati per quei valori:
+
+```{r}
+map(database = "world", ylim = range(0, 45))
+
+points(x = Recent_ADVENTURE_SCIENTIST_dt$Longitude, y = Recent_ADVENTURE_SCIENTIST_dt$Latitude, col = "Black", pch = 18)
+```
+
+Notiamo che la longitudine è principalmente compresa circa tra -10 e -110 quindi prendiamo quei valori:
+
+```{r}
+map(database = "world", xlim = range(-110, -10), ylim = range(0, 40))
+
+points(x = Recent_ADVENTURE_SCIENTIST_dt$Longitude, y = Recent_ADVENTURE_SCIENTIST_dt$Latitude, col = "Black", pch = 18)
+```
+
+Per poter capire meglio i valori che al momento si trovano molto vicini tra loro devo creare un grafico a dispersione con questi dati:
+
+```{r}
+Focus_SCIENTIST <- filter(Recent_ADVENTURE_SCIENTIST, Date >= "2014-11-01", Date <= "2014-12-15")
+
+ggplot(Focus_SCIENTIST, aes(Date, Total_Pieces_L)) +
+  geom_point()
+```
+
+Per poter visualizzare al meglio i valori molto vicini presenti verso la fine del 2014 dobbiamo escludere i valori esterni:
+
+```{r}
+Focus_SCIENTIST_dt <- data.frame(Focus_SCIENTIST)
+
+map(database = "world", xlim = range(-110, -10), ylim = range(0, 45))
+
+points(x = Focus_SCIENTIST_dt$Longitude, y = Focus_SCIENTIST_dt$Latitude, col = "Black", pch = 18)
+```
+
+Notiamo che la maggior parte dei valori si trova al di sotto di 25 pezzettini di plastica, quindi per poter visualizzare al meglio dobbiamo filtrare:
+
+```{r}
+Max_Focus_SCIENTIST <- filter(Focus_SCIENTIST, Total_Pieces_L <= 50)
+
+Max_Focus_SCIENTIST_dt <- data.frame(Max_Focus_SCIENTIST)
+
+map(database = "world", xlim = range(-110, -10), ylim = range(0, 45))
+
+points(x = Max_Focus_SCIENTIST_dt$Longitude, y = Max_Focus_SCIENTIST_dt$Latitude, col = "Black", pch = 18)
+```
+
+Si può notare che sono state effettuate diverse misurazioni durante le stesse giornate in luoghi diversi (lo si nota nel grafico a dispersione dove ci sono diversi valori sulla stessa colonna). Facciamo un esempio:
+
+```{r}
+Same_Date <- filter(ADVENTURE_SCIENTIST, Date == "2014-12-01")
+
+Same_Date_dt <- data.frame(Same_Date)
+
+map(database = "world", xlim = range(-110, 0), ylim = range(0, 40))
+
+points(x = Same_Date_dt$Longitude, y = Same_Date_dt$Latitude, col = "Black", pch = 18)
+```
+
+Come ultima cosa vorrei sapere dove e quando sono presenti il numero massimo e il numero minimo di microplastiche:
+
+```{r}
+Pieces <- c(ADVENTURE_SCIENTIST[,4])
+
+Pieces_Un <- unlist(Pieces)
+
+Mx <- max(Pieces_Un)
+Mn <- min(Pieces_Un)
+
+Max_Place <- filter(ADVENTURE_SCIENTIST, Total_Pieces_L == Mx)
+Max_Place_dt <- data.frame(Max_Place)
+
+Min_Place <- filter(ADVENTURE_SCIENTIST, Total_Pieces_L == Mn)
+Min_Place_dt <- data.frame(Min_Place)
+
+Max_Place_dt
+Min_Place_dt
+```
+
+Passiamo ora alla seconda tabella che riguarda la fauna geomarina. La plastica è stata misurata al metro cubo:
+  
+```{r}
+Data_GEOMARINE_MICRO <- read.csv("C:/Users/della/OneDrive/Desktop/Uni/MICROPLASTIC_DATA_BASED_ON_LAT_LONG/GEOMARINE_MICRO.csv")
+
+GEOMARINE_MICRO <- data.frame(Data_GEOMARINE_MICRO)
+
+map(database = "world")
+
+points(x = GEOMARINE_MICRO$Longitude, y = GEOMARINE_MICRO$Latitude, col = "Black", pch = 18)
+```
+
+Anche se non ci sono molti dati noto che sembra sia stato effettuato un tragitto specifico con controlli pressochè regolari. Voglio controllare come sono questi dati usando un grafico a dispersione:
+
+```{r}
+ggplot(GEOMARINE_MICRO, aes(Date, MP_conc__particles_cubic_metre_, colour = Latitude)) +
+  geom_point()
+```
+
+La maggior parte dei dati visualizzati è inferiore a 100 quindi seleziono quei dati:
+
+```{r}
+Focus_GEOMARINE <- filter(GEOMARINE_MICRO, MP_conc__particles_cubic_metre_ <= 100)
+
+Focus_GEOMARINE_dt <- data.frame(Focus_GEOMARINE)
+
+map(database = "world")
+
+points(x = Focus_GEOMARINE_dt$Longitude, y = Focus_GEOMARINE_dt$Latitude, col = "Black", pch = 18)
+```
+
+Poi vorrei conoscere, come nella prima tabella, in che luogo e in che data sono stati misurati il numero massimo e nimino di plastiche al metro cubo:
+
+```{r}
+Pieces <- c(GEOMARINE_MICRO[,4])
+
+Pieces_Un <- unlist(Pieces)
+
+Mx <- max(Pieces_Un)
+Mn <- min(Pieces_Un)
+
+Max_Place <- filter(GEOMARINE_MICRO, MP_conc__particles_cubic_metre_ == Mx)
+Min_Place <- filter(GEOMARINE_MICRO, MP_conc__particles_cubic_metre_ == Mn)
+
+Max_Place
+Min_Place
+```
+
+L'ultima tabella da analizzare contiene il numero di plastiche presenti nei mari in un kilometro quadrato:
+
+```{r}
+Data_SEA_MICRO <- read.csv("C:/Users/della/OneDrive/Desktop/Uni/MICROPLASTIC_DATA_BASED_ON_LAT_LONG/SEA_MICRO.csv")
+
+SEA_MICRO <- data.frame(Data_SEA_MICRO)
+
+map(database = "world")
+
+points(x = SEA_MICRO$Longitude, y = SEA_MICRO$Latitude, col = "Black", pch = 18)
+```
+Per prima cosa si nota che le misurazioni si trovano tutte verso sinistra quindi eliminiamo la parte di mappa che non ci serve:
+
+```{r}
+map(database = "world", xlim = range(-260, -40))
+
+points(x = SEA_MICRO$Longitude, y = SEA_MICRO$Latitude, col = "Black", pch = 18)
+
+```
+```{r}
+map(database = "world", xlim = range(-260, -40), ylim = range(-30, 70))
+
+points(x = SEA_MICRO$Longitude, y = SEA_MICRO$Latitude, col = "Black", pch = 18)
+
+```
+
+Per poter analizzare meglio questi dati è meglio visualizzarli anche con un grafico a dispersione:
+
+```{r}
+ggplot(SEA_MICRO, aes(Date, Pieces_KM2, colour = Latitude)) +
+  geom_point()
+```
+
+La prima cosa da fare è eliminare i valori molto alti:
+
+```{r}
+Focus_SEA <- filter(SEA_MICRO, Pieces_KM2 <= 2500000)
+
+ggplot(Focus_SEA, aes(Date, Pieces_KM2, colour = Latitude)) +
+  geom_point()
+```
+
+Poi bisogna prendere un certo intervallo di date per escludere i valori su cui attualmente non ci vogliamo interessare:
+
+```{r}
+Recent_SEA <- filter(Focus_SEA, Date >= "2010-01-01")
+
+ggplot(Recent_SEA, aes(Date, Pieces_KM2, colour = Latitude)) +
+  geom_point()
+```
+
+Selezioniamo un intervallo ancora più stretto:
+
+```{r}
+FFocus_SEA <- filter(Focus_SEA, Date >= "2012-06-15", Date <= "2012-11-16")
+
+ggplot(FFocus_SEA, aes(Date, Pieces_KM2, colour = Latitude)) +
+  geom_point()
+
+ggplot(FFocus_SEA, aes(Date, Pieces_KM2, colour = Longitude)) +
+  geom_point()
+```
+
+Per analizzare i valori presenti centralmente al grafico originario dobbiamo escludere dei valori:
+
+```{r}
+Focus1_SEA <- filter(Focus_SEA, Date >= "1995-01-01", Date <= "2009-01-01")
+
+ggplot(Focus1_SEA, aes(Date, Pieces_KM2, colour = Latitude)) +
+  geom_point()
+```
+
+Filtriamo i pezzetti in modo che siano inferiori a 100000 al kilometro quadrato:
+
+```{r}
+Focus2_SEA <- filter(Focus1_SEA, Pieces_KM2 <= 100000)
+
+ggplot(Focus2_SEA, aes(Date, Pieces_KM2, colour = Latitude)) +
+  geom_point()
+```
+
+Continuiamo ad controllare i valori:
+
+```{r}
+FFocus <- filter(Focus2_SEA, Pieces_KM2 <= 25000)
+
+ggplot(FFocus, aes(Date, Pieces_KM2, colour = Latitude)) +
+  geom_point()
+
+ggplot(FFocus, aes(Date, Pieces_KM2, colour = Longitude)) +
+  geom_point()
+```
+
+Escludiamo come ultima cosa i posti con una latitudine maggiore di 40 e con una longitudine maggiore di -120:
+
+```{r}
+Max_Focus_SEA <- filter(FFocus, Latitude <= 40, Longitude <= -120)
+
+ggplot(Max_Focus_SEA, aes(Date, Pieces_KM2)) +
+  geom_point()
+```
+Possiamo ora visualizzare questi dati sulla mappa:
+
+```{r}
+map(database = "world", xlim = range(-260, -40), ylim = range(-30, 70))
+
+points(x = Max_Focus_SEA$Longitude, y = Max_Focus_SEA$Latitude, col = "Black", pch = 18)
+
+```
+
+Come per le altre due tabelle troviamo dove e quando il numero di microplastiche è il più  alto e il più basso:
+
+```{r}
+Pieces <- c(SEA_MICRO[,4])
+
+Pieces_Un <- unlist(Pieces)
+
+Mx <- max(Pieces_Un)
+Mn <- min(Pieces_Un)
+
+Max_Place <- filter(SEA_MICRO, Pieces_KM2 == Mx)
+Min_Place <- filter(SEA_MICRO, Pieces_KM2 == Mn)
+
+Max_Place
+Min_Place
+```
+
+Vediamo dove si trovano i punti con 0 microplastiche al kilomentro quadrato:
+
+```{r}
+  map(database = "world", xlim = range(-175, -30), ylim = range(-30, 60))
+
+  points(x = Min_Place$Longitude, y = Min_Place$Latitude, col = "Black", pch = 18)
+```
